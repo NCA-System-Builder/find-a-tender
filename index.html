@@ -584,10 +584,10 @@
       <div class="form-group">
         <label for="pages-input">Pages to fetch</label>
         <div class="pages-control">
-          <input type="number" id="pages-input" value="5" min="1" max="50" />
+          <input type="number" id="pages-input" value="20" min="1" max="200" />
           <span>× 100 results per page (max 5,000)</span>
         </div>
-        <p class="input-hint">More pages = slower but more thorough. Start with 5.</p>
+        <p class="input-hint">More pages = slower but more thorough. Start with 20.</p>
       </div>
 
     </div>
@@ -726,12 +726,12 @@
   });
 
   // ── API + filtering ──
-  const BASE_URL = 'https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages';
+  const BASE_URL = 'https://hzagpyjeauqkokffvptti.supabase.co/functions/v1/tender-proxy';
 
   async function fetchPage(url) {
     const response = await fetch(url, {
       headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(30000)
+      signal: AbortSignal.timeout(60000)
     });
     if (!response.ok) {
       if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
@@ -814,7 +814,7 @@
       return;
     }
 
-    const maxPages = Math.max(1, Math.min(50, parseInt(document.getElementById('pages-input').value) || 5));
+    const maxPages = Math.max(1, Math.min(200, parseInt(document.getElementById('pages-input').value) || 5));
     const searchBtn = document.getElementById('search-btn');
 
     searchBtn.disabled = true;
