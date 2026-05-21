@@ -1,3 +1,7 @@
+// ── ui.js ──
+// Handles DOM state, keyword tags, toggles, tab switching,
+// table rendering, CSV download, and status bar.
+
 // ── State ──
 let keywords   = [];
 let searchIn   = 'both';
@@ -65,12 +69,10 @@ function renderTags() {
   keywords.forEach(kw => {
     const tag = document.createElement('span');
     tag.className = 'tag';
+    tag.title = 'Click to remove';
+    tag.style.cursor = 'pointer';
     tag.appendChild(document.createTextNode(kw));
-    const btn = document.createElement('button');
-    btn.className = 'tag-remove';
-    btn.textContent = '×';
-    btn.addEventListener('click', () => removeKeyword(kw));
-    tag.appendChild(btn);
+    tag.addEventListener('click', () => removeKeyword(kw));
     tagContainer.appendChild(tag);
   });
 }
@@ -93,11 +95,66 @@ setupToggle('scope-toggle',     val => {
   document.getElementById('pages-group').style.display = val === 'pages' ? 'flex' : 'none';
 });
 
+// ── Tab switching ──
+// Tracks which tab is currently active so map can be initialised correctly
+let activeTab = 'table';
+
+function switchTab(tab) {
+  activeTab = tab;
+
+  // Update tab button states
+  document.getElementById('tab-table').classList.toggle('active', tab === 'table');
+  document.getElementById('tab-map').classList.toggle('active', tab === 'map');
+
+  // Show/hide content panels
+  document.getElementById('tab-content-table').style.display = tab === 'table' ? 'block' : 'none';
+  document.getElementById('tab-content-map').style.display   = tab === 'map'   ? 'block' : 'none';
+
+  // When switching to map, hand off to map.js
+  if (tab === 'map') {
+    onMapTabOpen(allResults);
+  }
+}
+
 // ── Search button state ──
 function setSearching(on) {
   document.getElementById('search-btn').disabled = on;
   const cb = document.getElementById('cancel-btn');
   on ? cb.classList.add('visible') : cb.classList.remove('visible');
+}
+
+// ── Called from search.js when results are ready ──
+// Renders the table, kicks off background geocoding, shows results section.
+function onSearchComplete(results, totalFetched, pageCount) {
+  allResults = results;
+
+  if (results.length === 0) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').innerHTML = `
+      <h3>No matches found</h3>
+      <p>Searched ${totalFetched.toLocaleString()} tenders. Try adjusting your keywords or broadening your filters.</p>
+    `;
+    return;
+  }
+
+  // Update meta
+  document.getElementById('results-meta').textContent =
+    `${results.length} result${results.length !== 1 ? 's' : ''} from ${totalFetched.toLocaleString()} tenders searched`;
+
+  // Reset map state for new results
+  resetMap();
+
+  // Switch back to table tab on new search
+  switchTab('table');
+
+  // Render table
+  sortAndRender();
+
+  // Show results section
+  document.getElementById('results-section').style.display = 'block';
+
+  // Start geocoding in the background — doesn't block the table rendering
+  geocodeAndRenderMap(results);
 }
 
 // ── Sort + render ──

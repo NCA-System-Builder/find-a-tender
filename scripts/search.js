@@ -1,3 +1,7 @@
+// ── search.js ──
+// Handles API fetching, pagination, and the main search loop.
+// Calls onSearchComplete() in ui.js when results are ready.
+
 const BASE_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/tender-proxy';
 
 async function fetchPage(url) {
@@ -64,26 +68,33 @@ async function startSearch() {
     : Math.max(1, Math.min(500, parseInt(document.getElementById('pages-input').value) || 20));
 
   setSearching(true);
-  allResults = [];
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('empty-state').style.display     = 'none';
+
+  // Reset results display
+  const resultsSection = document.getElementById('results-section');
+  const emptyState     = document.getElementById('empty-state');
+  resultsSection.style.display = 'none';
+  emptyState.style.display     = 'none';
+
   setStatus('loading', 'Connecting to Find a Tender…');
 
   let url          = `${BASE_URL}?limit=100&stages=tender`;
   let page         = 1;
   let totalFetched = 0;
+  const results    = [];
   const today      = new Date();
   today.setHours(0, 0, 0, 0);
 
   try {
     while (page <= maxPages) {
       if (cancelled) {
-        setStatus('success', `Search cancelled — ${page - 1} page(s) checked, ${totalFetched.toLocaleString()} tenders searched, ${allResults.length} match(es) found.`);
+        setStatus('success',
+          `Search cancelled — ${page - 1} page(s) checked, ${totalFetched.toLocaleString()} tenders searched, ${results.length} match(es) found.`
+        );
         break;
       }
 
       setStatus('loading',
-        `Page ${page}${searchAll ? '' : ` of ${maxPages}`} — ${totalFetched.toLocaleString()} tenders checked, ${allResults.length} match(es) found so far…`
+        `Page ${page}${searchAll ? '' : ` of ${maxPages}`} — ${totalFetched.toLocaleString()} tenders checked, ${results.length} match(es) found so far…`
       );
 
       const data     = await fetchPage(url);
@@ -98,14 +109,14 @@ async function startSearch() {
           const closes = result.closes ? new Date(result.closes) : null;
           if (closes && closes < today) continue;
         }
-        allResults.push(result);
+        results.push(result);
       }
 
       const nextUrl = getNextUrl(data);
       if (!nextUrl) {
         if (!cancelled) {
           setStatus('success',
-            `Complete — all ${totalFetched.toLocaleString()} tenders searched across ${page} page(s). Found ${allResults.length} match(es).`
+            `Complete — all ${totalFetched.toLocaleString()} tenders searched across ${page} page(s). Found ${results.length} match(es).`
           );
         }
         break;
@@ -119,27 +130,17 @@ async function startSearch() {
 
     if (!cancelled && page > maxPages) {
       setStatus('success',
-        `Searched ${totalFetched.toLocaleString()} tenders across ${maxPages} page(s). Found ${allResults.length} match(es).`
+        `Searched ${totalFetched.toLocaleString()} tenders across ${maxPages} page(s). Found ${results.length} match(es).`
       );
     }
 
-    if (allResults.length === 0) {
-      document.getElementById('empty-state').style.display = 'block';
-      document.getElementById('empty-state').innerHTML = `
-        <h3>No matches found</h3>
-        <p>Searched ${totalFetched.toLocaleString()} tenders. Try adjusting your keywords or broadening your filters.</p>
-      `;
-    } else {
-      document.getElementById('results-meta').textContent =
-        `${allResults.length} result${allResults.length !== 1 ? 's' : ''} from ${totalFetched.toLocaleString()} tenders searched`;
-      sortAndRender();
-      document.getElementById('results-section').style.display = 'block';
-    }
+    // Hand off to ui.js — it handles table rendering, map kickoff, and display
+    onSearchComplete(results, totalFetched, page);
 
   } catch (err) {
     setStatus('error', err.message || 'An unexpected error occurred. Please try again.');
-    document.getElementById('empty-state').style.display = 'block';
-    document.getElementById('empty-state').innerHTML = `
+    emptyState.style.display = 'block';
+    emptyState.innerHTML = `
       <h3>Something went wrong</h3>
       <p>${escapeHtml(err.message)}</p>
     `;

@@ -4,8 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tender Finder</title>
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Leaflet MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <!-- App styles -->
   <link rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
@@ -94,6 +105,8 @@
 
   <!-- Results -->
   <div id="results-section" style="display:none;">
+
+    <!-- Results header: title, meta, sort, download -->
     <div class="results-header">
       <div>
         <h2 class="results-title">Results</h2>
@@ -114,21 +127,50 @@
       </div>
     </div>
 
-    <div class="table-wrapper">
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Buyer</th>
-            <th>Postcode</th>
-            <th>Value</th>
-            <th>Closes</th>
-            <th>Matched on</th>
-          </tr>
-        </thead>
-        <tbody id="results-body"></tbody>
-      </table>
+    <!-- Tab bar -->
+    <div class="results-tabs">
+      <button class="results-tab active" id="tab-table" onclick="switchTab('table')">
+        Table
+      </button>
+      <button class="results-tab" id="tab-map" onclick="switchTab('map')">
+        Map
+        <span class="tab-badge" id="map-tab-badge"></span>
+      </button>
     </div>
+
+    <!-- Table tab content -->
+    <div id="tab-content-table">
+      <div class="table-wrapper">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Buyer</th>
+              <th>Postcode</th>
+              <th>Value</th>
+              <th>Closes</th>
+              <th>Matched on</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Map tab content -->
+    <div id="tab-content-map" style="display:none;">
+      <div class="map-wrapper">
+        <!-- Loading overlay shown while geocoding -->
+        <div class="map-loading" id="map-loading">
+          <div class="spinner"></div>
+          <span>Loading map…</span>
+        </div>
+        <!-- Leaflet renders into this div -->
+        <div id="map-container"></div>
+      </div>
+      <p class="map-coverage" id="map-coverage"></p>
+    </div>
+
   </div>
 
   <!-- Empty state -->
@@ -144,8 +186,16 @@
   under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank">Open Government Licence v3.0</a>
 </footer>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Leaflet MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!-- App scripts — order matters: filter and search before map and ui -->
 <script src="scripts/filter.js"></script>
 <script src="scripts/search.js"></script>
+<script src="scripts/map.js"></script>
 <script src="scripts/ui.js"></script>
 </body>
 </html>
