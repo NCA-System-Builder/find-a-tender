@@ -1,3 +1,6 @@
+// ── filter.js ──
+// Handles filtering of search results based on user criteria.
+
 function keywordMatches(text, keyword) {
   if (!text) return false;
   const escaped = keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+');
