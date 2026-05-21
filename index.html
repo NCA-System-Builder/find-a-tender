@@ -6,536 +6,7 @@
   <title>Tender Finder</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --green-dark:   #1a3a2a;
-      --green-mid:    #2d6a4f;
-      --green-accent: #52b788;
-      --green-light:  #b7e4c7;
-      --cream:        #f8f5f0;
-      --cream-dark:   #ede9e2;
-      --text-primary: #1a1a1a;
-      --text-secondary: #4a4a4a;
-      --text-muted:   #888;
-      --border:       #d8d3cb;
-      --shadow:       0 2px 12px rgba(0,0,0,0.08);
-      --radius:       6px;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--text-primary);
-      min-height: 100vh;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    /* ── Header ── */
-    header {
-      background: var(--green-dark);
-      color: white;
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.2);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--green-accent);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-
-    .logo-text {
-      font-family: 'DM Serif Display', serif;
-      font-size: 20px;
-      letter-spacing: -0.3px;
-    }
-
-    .header-badge {
-      font-size: 12px;
-      color: var(--green-light);
-      font-weight: 300;
-      letter-spacing: 0.05em;
-    }
-
-    /* ── Main layout ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2.5rem 2rem 4rem;
-    }
-
-    /* ── Search panel ── */
-    .search-panel {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow);
-    }
-
-    .panel-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 22px;
-      color: var(--green-dark);
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--cream-dark);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group.full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    .keyword-input-wrapper {
-      position: relative;
-    }
-
-    input[type="text"], select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      color: var(--text-primary);
-      background: var(--cream);
-      transition: border-color 0.15s, box-shadow 0.15s;
-      outline: none;
-      appearance: none;
-    }
-
-    input[type="text"]:focus, select:focus {
-      border-color: var(--green-accent);
-      box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
-      background: white;
-    }
-
-    .input-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* ── Tag pills for keywords ── */
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-      min-height: 32px;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--green-light);
-      color: var(--green-dark);
-      border-radius: 20px;
-      padding: 4px 10px 4px 12px;
-      font-size: 13px;
-      font-weight: 500;
-      animation: tagIn 0.15s ease;
-    }
-
-    @keyframes tagIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-
-    .tag-remove {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--green-mid);
-      font-size: 16px;
-      line-height: 1;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      transition: color 0.1s;
-    }
-
-    .tag-remove:hover { color: var(--green-dark); }
-
-    /* ── Toggle group ── */
-    .toggle-group {
-      display: flex;
-      gap: 0;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: var(--cream);
-    }
-
-    .toggle-btn {
-      flex: 1;
-      padding: 9px 12px;
-      background: none;
-      border: none;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      border-right: 1px solid var(--border);
-    }
-
-    .toggle-btn:last-child { border-right: none; }
-
-    .toggle-btn.active {
-      background: var(--green-dark);
-      color: white;
-    }
-
-    .toggle-btn:hover:not(.active) {
-      background: var(--cream-dark);
-    }
-
-    /* ── Form footer ── */
-    .form-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--cream-dark);
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .pages-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .pages-control input[type="number"] {
-      width: 60px;
-      padding: 6px 10px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      text-align: center;
-      background: var(--cream);
-      outline: none;
-    }
-
-    .pages-control input[type="number"]:focus {
-      border-color: var(--green-accent);
-      box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
-    }
-
-    .btn-search {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--green-dark);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      padding: 11px 28px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      letter-spacing: 0.02em;
-    }
-
-    .btn-search:hover { background: var(--green-mid); }
-    .btn-search:active { transform: scale(0.98); }
-    .btn-search:disabled { background: var(--text-muted); cursor: not-allowed; }
-
-    /* ── Status bar ── */
-    .status-bar {
-      display: none;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 1.5rem;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .status-bar.visible { display: flex; }
-
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--green-light);
-      border-top-color: var(--green-accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .status-dot.success { background: var(--green-accent); }
-    .status-dot.error   { background: #e05252; }
-
-    /* ── Results section ── */
-    .results-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .results-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 20px;
-      color: var(--green-dark);
-    }
-
-    .results-meta {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .results-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sort-control {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .sort-control select {
-      padding: 6px 10px;
-      font-size: 13px;
-      width: auto;
-    }
-
-    .btn-download {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: white;
-      color: var(--green-dark);
-      border: 1.5px solid var(--green-accent);
-      border-radius: var(--radius);
-      padding: 7px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .btn-download:hover {
-      background: var(--green-accent);
-      color: white;
-    }
-
-    /* ── Table ── */
-    .table-wrapper {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-    }
-
-    thead {
-      background: var(--green-dark);
-      color: white;
-    }
-
-    th {
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    th:hover { background: var(--green-mid); }
-
-    th .sort-arrow {
-      display: inline-block;
-      margin-left: 4px;
-      opacity: 0.4;
-      font-size: 10px;
-    }
-
-    th.sorted .sort-arrow { opacity: 1; }
-
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--cream-dark);
-      vertical-align: top;
-      color: var(--text-primary);
-    }
-
-    tr:last-child td { border-bottom: none; }
-
-    tr:hover td { background: #fafaf8; }
-
-    .td-title {
-      font-weight: 500;
-      max-width: 280px;
-    }
-
-    .td-title a {
-      color: var(--green-dark);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.1s;
-    }
-
-    .td-title a:hover { border-color: var(--green-accent); }
-
-    .td-buyer { color: var(--text-secondary); max-width: 180px; }
-    .td-value { white-space: nowrap; font-weight: 500; }
-    .td-date  { white-space: nowrap; }
-
-    .date-urgent {
-      color: #c0392b;
-      font-weight: 600;
-    }
-
-    .date-soon {
-      color: #e67e22;
-      font-weight: 500;
-    }
-
-    .keyword-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .keyword-chip {
-      background: var(--green-light);
-      color: var(--green-dark);
-      border-radius: 10px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    /* ── Empty / error states ── */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--text-muted);
-    }
-
-    .empty-state .icon {
-      font-size: 48px;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .empty-state h3 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 20px;
-      color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-    }
-
-    .empty-state p { font-size: 14px; }
-
-    /* ── Footer ── */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      font-size: 12px;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border);
-      margin-top: 3rem;
-    }
-
-    footer a { color: var(--green-mid); text-decoration: none; }
-
-    /* ── Responsive ── */
-    @media (max-width: 700px) {
-      .form-grid { grid-template-columns: 1fr; }
-      .form-group.full { grid-column: 1; }
-      main { padding: 1.5rem 1rem 3rem; }
-      table { font-size: 12px; }
-      td, th { padding: 10px 10px; }
-      .td-title { max-width: 160px; }
-      .td-buyer { display: none; }
-    }
-  </style>
+  <link rel="stylesheet" href="styles/main.css" />
 </head>
 <body>
 
@@ -544,7 +15,7 @@
     <div class="logo-icon">🌿</div>
     <span class="logo-text">Tender Finder</span>
   </div>
-  <span class="header-badge">Find a Tender · Carbon &amp; Biodiversity</span>
+  <span class="header-badge">Natural Capital Advisory</span>
 </header>
 
 <main>
@@ -553,25 +24,22 @@
   <div class="search-panel">
     <h2 class="panel-title">Search Tenders</h2>
 
-    <div class="form-grid">
+    <!-- Keywords -->
+    <div class="keyword-block">
+      <label for="keyword-input">Keywords</label>
+      <input
+        type="text"
+        id="keyword-input"
+        placeholder="Type a keyword and press Enter or comma…"
+        autocomplete="off"
+      />
+      <div class="tag-container" id="tag-container"></div>
+    </div>
 
-      <!-- Keywords -->
-      <div class="form-group full">
-        <label for="keyword-input">Keywords</label>
-        <div class="keyword-input-wrapper">
-          <input
-            type="text"
-            id="keyword-input"
-            placeholder="Type a keyword and press Enter or comma…"
-            autocomplete="off"
-          />
-        </div>
-        <div class="tag-container" id="tag-container"></div>
-        <p class="input-hint">e.g. Biodiversity Net Gain, BNG, carbon credits, net zero</p>
-      </div>
+    <!-- Filters -->
+    <div class="filters-row">
 
-      <!-- Search in -->
-      <div class="form-group">
+      <div class="filter-group">
         <label>Search in</label>
         <div class="toggle-group" id="search-in-toggle">
           <button class="toggle-btn active" data-value="both">Title &amp; Description</button>
@@ -580,25 +48,40 @@
         </div>
       </div>
 
-      <!-- Pages to fetch -->
-      <div class="form-group">
-        <label for="pages-input">Pages to fetch</label>
-        <div class="pages-control">
-          <input type="number" id="pages-input" value="20" min="1" max="200" />
-          <span>× 100 results per page (max 5,000)</span>
+      <div class="filter-group">
+        <label>Tender status</label>
+        <div class="toggle-group" id="status-toggle">
+          <button class="toggle-btn active" data-value="open">Open only</button>
+          <button class="toggle-btn" data-value="all">Include closed</button>
         </div>
-        <p class="input-hint">More pages = slower but more thorough. Start with 20.</p>
+      </div>
+
+      <div class="filter-group">
+        <label>Search scope</label>
+        <div class="toggle-group" id="scope-toggle">
+          <button class="toggle-btn active" data-value="all">All tenders</button>
+          <button class="toggle-btn" data-value="pages">Specific pages</button>
+        </div>
+      </div>
+
+      <div class="filter-group" id="pages-group" style="display:none;">
+        <label for="pages-input">Number of pages</label>
+        <div class="pages-inline">
+          <input type="number" id="pages-input" value="20" min="1" max="500" />
+          <span>× 100 per page</span>
+        </div>
       </div>
 
     </div>
 
     <div class="form-footer">
       <div style="font-size:13px; color:var(--text-muted);">
-        Results match <strong>any</strong> keyword · Sorted by closing date by default
+        Results match <strong>any</strong> keyword
       </div>
-      <button class="btn-search" id="search-btn" onclick="startSearch()">
-        🔍 Search Tenders
-      </button>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="btn-search" id="search-btn" onclick="startSearch()">Search</button>
+        <button class="btn-cancel" id="cancel-btn" onclick="cancelSearch()">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -613,12 +96,12 @@
   <div id="results-section" style="display:none;">
     <div class="results-header">
       <div>
-        <h2 class="results-title" id="results-title">Results</h2>
+        <h2 class="results-title">Results</h2>
         <p class="results-meta" id="results-meta"></p>
       </div>
       <div class="results-actions">
         <div class="sort-control">
-          <label for="sort-select" style="text-transform:none; letter-spacing:0; font-weight:500;">Sort by</label>
+          <label for="sort-select" style="text-transform:none; letter-spacing:0; font-weight:500; margin:0;">Sort by</label>
           <select id="sort-select" onchange="sortAndRender()">
             <option value="date-asc">Closing date (soonest first)</option>
             <option value="date-desc">Closing date (latest first)</option>
@@ -627,7 +110,7 @@
             <option value="buyer-asc">Buyer (A–Z)</option>
           </select>
         </div>
-        <button class="btn-download" onclick="downloadCSV()">⬇ Download CSV</button>
+        <button class="btn-download" onclick="downloadCSV()">Download CSV</button>
       </div>
     </div>
 
@@ -648,9 +131,8 @@
     </div>
   </div>
 
-  <!-- Empty state (shown before first search) -->
+  <!-- Empty state -->
   <div class="empty-state" id="empty-state">
-    <span class="icon">🌱</span>
     <h3>Ready to search</h3>
     <p>Enter keywords above to find relevant procurement notices from Find a Tender.</p>
   </div>
@@ -662,349 +144,8 @@
   under the <a href="http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank">Open Government Licence v3.0</a>
 </footer>
 
-<script>
-  // ── State ──
-  let keywords    = [];
-  let searchIn    = 'both';
-  let allResults  = [];
-
-  // ── Keyword tag input ──
-  const keywordInput = document.getElementById('keyword-input');
-  const tagContainer = document.getElementById('tag-container');
-
-  // Default keywords
-  const DEFAULT_KEYWORDS = [
-    'Biodiversity Net Gain', 'BNG', 'biodiversity', 'carbon',
-    'carbon credits', 'net zero', 'carbon neutral',
-    'nutrient mitigation', 'phosphate mitigation', 'nitrate mitigation'
-  ];
-  DEFAULT_KEYWORDS.forEach(addKeyword);
-
-  keywordInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      const val = keywordInput.value.trim().replace(/,$/, '');
-      if (val) { addKeyword(val); keywordInput.value = ''; }
-    }
-    if (e.key === 'Backspace' && keywordInput.value === '' && keywords.length) {
-      removeKeyword(keywords[keywords.length - 1]);
-    }
-  });
-
-  function addKeyword(kw) {
-    kw = kw.trim();
-    if (!kw || keywords.includes(kw)) return;
-    keywords.push(kw);
-    const tag = document.createElement('span');
-    tag.className = 'tag';
-    tag.innerHTML = `${escapeHtml(kw)}<button class="tag-remove" onclick="removeKeyword('${escapeHtml(kw)}')" title="Remove">×</button>`;
-    tagContainer.appendChild(tag);
-  }
-
-  function removeKeyword(kw) {
-    keywords = keywords.filter(k => k !== kw);
-    renderTags();
-  }
-
-  function renderTags() {
-    tagContainer.innerHTML = '';
-    keywords.forEach(kw => {
-      const tag = document.createElement('span');
-      tag.className = 'tag';
-      tag.innerHTML = `${escapeHtml(kw)}<button class="tag-remove" onclick="removeKeyword('${escapeHtml(kw)}')" title="Remove">×</button>`;
-      tagContainer.appendChild(tag);
-    });
-  }
-
-  // ── Search-in toggle ──
-  document.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      searchIn = btn.dataset.value;
-    });
-  });
-
-  // ── API + filtering ──
-  const BASE_URL = 'https://hzagpyjeauqkokffvptti.supabase.co/functions/v1/tender-proxy';
-
-  async function fetchPage(url) {
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(60000)
-    });
-    if (!response.ok) {
-      if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
-      if (response.status === 503) throw new Error('The Find a Tender service is temporarily unavailable. Please try again shortly.');
-      throw new Error(`API error: ${response.status}`);
-    }
-    return response.json();
-  }
-
-  function getNextUrl(data) {
-    const links = data.links;
-    if (!links) return null;
-    if (typeof links === 'object' && !Array.isArray(links)) return links.next || null;
-    if (Array.isArray(links)) {
-      const next = links.find(l => l.rel === 'next');
-      return next ? next.href : null;
-    }
-    return null;
-  }
-
-  function extractPostcode(release) {
-    const parties = release.parties || [];
-    for (const party of parties) {
-      if ((party.roles || []).includes('buyer')) {
-        return party.address?.postalCode || null;
-      }
-    }
-    return null;
-  }
-
-  function keywordMatches(text, keyword) {
-    if (!text) return false;
-    const escaped = keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\ /g, '\\s+');
-    const pattern = new RegExp(`\\b${escaped}\\b`, 'i');
-    return pattern.test(text);
-  }
-
-  function filterRelease(release, kws, where) {
-    const tender      = release.tender || {};
-    const title       = tender.title || '';
-    const description = release.description || tender.description || '';
-    const matched     = [];
-
-    for (const kw of kws) {
-      if (!kw.trim()) continue;
-      const inTitle = keywordMatches(title, kw);
-      const inDesc  = keywordMatches(description, kw);
-      if (where === 'title'       && inTitle)          matched.push(kw);
-      else if (where === 'description' && inDesc)      matched.push(kw);
-      else if (where === 'both' && (inTitle || inDesc)) matched.push(kw);
-    }
-    return matched;
-  }
-
-  function buildResult(release, matchedKeywords) {
-    const tender    = release.tender || {};
-    const buyer     = release.buyer  || {};
-    const amount    = tender.value?.amount;
-    const currency  = tender.value?.currency || 'GBP';
-    const endDate   = tender.tenderPeriod?.endDate || null;
-
-    return {
-      ocid:     release.ocid || '',
-      title:    tender.title || 'No title',
-      buyer:    buyer.name   || 'Unknown',
-      postcode: extractPostcode(release) || '',
-      value:    amount != null ? amount : null,
-      currency,
-      closes:   endDate,
-      matched:  matchedKeywords,
-      // Link to the notice on Find a Tender
-      link:     `https://www.find-tender.service.gov.uk/Notice/${(release.id || '').split('-')[0]}`
-    };
-  }
-
-  // ── Main search ──
-  async function startSearch() {
-    if (keywords.length === 0) {
-      setStatus('error', 'Please enter at least one keyword before searching.');
-      return;
-    }
-
-    const maxPages = Math.max(1, Math.min(200, parseInt(document.getElementById('pages-input').value) || 5));
-    const searchBtn = document.getElementById('search-btn');
-
-    searchBtn.disabled = true;
-    searchBtn.textContent = '⏳ Searching…';
-    allResults = [];
-    document.getElementById('results-section').style.display = 'none';
-    document.getElementById('empty-state').style.display = 'none';
-    setStatus('loading', 'Connecting to Find a Tender…');
-
-    let url = `${BASE_URL}?limit=100&stages=tender`;
-    let page = 1;
-    let totalFetched = 0;
-
-    try {
-      while (page <= maxPages) {
-        setStatus('loading', `Fetching page ${page} of ${maxPages}… (${allResults.length} matches so far)`);
-
-        const data = await fetchPage(url);
-        const releases = data.releases || [];
-        totalFetched += releases.length;
-
-        for (const release of releases) {
-          const matched = filterRelease(release, keywords, searchIn);
-          if (matched.length > 0) {
-            allResults.push(buildResult(release, matched));
-          }
-        }
-
-        const nextUrl = getNextUrl(data);
-        if (!nextUrl) break;
-        url = nextUrl;
-        page++;
-
-        // Brief pause between pages to be polite to the API
-        await new Promise(r => setTimeout(r, 500));
-      }
-
-      if (allResults.length === 0) {
-        setStatus('success', `Searched ${totalFetched.toLocaleString()} tenders across ${page} page(s). No matches found — try different keywords or fetch more pages.`);
-        document.getElementById('empty-state').style.display = 'block';
-        document.getElementById('empty-state').innerHTML = `
-          <span class="icon">🔍</span>
-          <h3>No matches found</h3>
-          <p>Searched ${totalFetched.toLocaleString()} tenders. Try adjusting your keywords or increasing the pages to fetch.</p>
-        `;
-      } else {
-        setStatus('success', `Searched ${totalFetched.toLocaleString()} tenders across ${page} page(s). Found ${allResults.length} match(es).`);
-        document.getElementById('results-meta').textContent =
-          `${allResults.length} result${allResults.length !== 1 ? 's' : ''} from ${totalFetched.toLocaleString()} tenders searched`;
-        sortAndRender();
-        document.getElementById('results-section').style.display = 'block';
-      }
-
-    } catch (err) {
-      setStatus('error', err.message || 'An unexpected error occurred. Please try again.');
-      document.getElementById('empty-state').style.display = 'block';
-      document.getElementById('empty-state').innerHTML = `
-        <span class="icon">⚠️</span>
-        <h3>Something went wrong</h3>
-        <p>${escapeHtml(err.message)}</p>
-      `;
-    } finally {
-      searchBtn.disabled = false;
-      searchBtn.innerHTML = '🔍 Search Tenders';
-    }
-  }
-
-  // ── Sort + render ──
-  function sortAndRender() {
-    const sortVal = document.getElementById('sort-select').value;
-    const sorted  = [...allResults];
-
-    sorted.sort((a, b) => {
-      switch (sortVal) {
-        case 'date-asc':
-          return (a.closes || '9999') < (b.closes || '9999') ? -1 : 1;
-        case 'date-desc':
-          return (a.closes || '') > (b.closes || '') ? -1 : 1;
-        case 'value-desc':
-          return (b.value || 0) - (a.value || 0);
-        case 'value-asc':
-          return (a.value || 0) - (b.value || 0);
-        case 'buyer-asc':
-          return a.buyer.localeCompare(b.buyer);
-        default:
-          return 0;
-      }
-    });
-
-    renderTable(sorted);
-  }
-
-  function renderTable(results) {
-    const tbody = document.getElementById('results-body');
-    tbody.innerHTML = '';
-
-    for (const r of results) {
-      const tr = document.createElement('tr');
-
-      // Closing date formatting
-      let dateDisplay = '—';
-      let dateClass   = '';
-      if (r.closes) {
-        const d    = new Date(r.closes);
-        const now  = new Date();
-        const days = Math.ceil((d - now) / 86400000);
-        dateDisplay = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        if (days <= 7)       dateClass = 'date-urgent';
-        else if (days <= 21) dateClass = 'date-soon';
-      }
-
-      // Value formatting
-      const valueDisplay = r.value != null
-        ? `£${Number(r.value).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`
-        : '—';
-
-      // Keyword chips
-      const chips = r.matched.map(k =>
-        `<span class="keyword-chip">${escapeHtml(k)}</span>`
-      ).join('');
-
-      tr.innerHTML = `
-        <td class="td-title"><a href="${escapeHtml(r.link)}" target="_blank">${escapeHtml(r.title)}</a></td>
-        <td class="td-buyer">${escapeHtml(r.buyer)}</td>
-        <td>${escapeHtml(r.postcode) || '—'}</td>
-        <td class="td-value">${valueDisplay}</td>
-        <td class="td-date ${dateClass}">${dateDisplay}</td>
-        <td><div class="keyword-chips">${chips}</div></td>
-      `;
-      tbody.appendChild(tr);
-    }
-  }
-
-  // ── CSV download ──
-  function downloadCSV() {
-    if (allResults.length === 0) return;
-
-    const headers = ['Title', 'Buyer', 'Postcode', 'Value (GBP)', 'Closes', 'Matched Keywords', 'OCID', 'Link'];
-    const rows = allResults.map(r => [
-      r.title,
-      r.buyer,
-      r.postcode,
-      r.value != null ? r.value : '',
-      r.closes || '',
-      r.matched.join('; '),
-      r.ocid,
-      r.link
-    ]);
-
-    const csv = [headers, ...rows]
-      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `tenders-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // ── Status bar ──
-  function setStatus(type, message) {
-    const bar     = document.getElementById('status-bar');
-    const spinner = document.getElementById('status-spinner');
-    const dot     = document.getElementById('status-dot');
-    const text    = document.getElementById('status-text');
-
-    bar.classList.add('visible');
-    text.textContent = message;
-
-    if (type === 'loading') {
-      spinner.style.display = 'block';
-      dot.style.display = 'none';
-    } else {
-      spinner.style.display = 'none';
-      dot.style.display = 'block';
-      dot.className = `status-dot ${type === 'error' ? 'error' : 'success'}`;
-    }
-  }
-
-  // ── Utility ──
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-</script>
+<script src="scripts/filter.js"></script>
+<script src="scripts/search.js"></script>
+<script src="scripts/ui.js"></script>
 </body>
 </html>
