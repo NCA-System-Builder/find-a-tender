@@ -47,39 +47,55 @@
       <div class="tag-container" id="tag-container"></div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-row">
+    <!-- Filters + Key -->
+    <div class="filters-and-key">
+      <div class="filters-row">
 
-      <div class="filter-group">
-        <label>Search in</label>
-        <div class="toggle-group" id="search-in-toggle">
-          <button class="toggle-btn active" data-value="both">Title &amp; Description</button>
-          <button class="toggle-btn" data-value="title">Title only</button>
-          <button class="toggle-btn" data-value="description">Description only</button>
+        <div class="filter-group">
+          <label>Search in</label>
+          <div class="toggle-group" id="search-in-toggle">
+            <button class="toggle-btn active" data-value="both">Title &amp; Description</button>
+            <button class="toggle-btn" data-value="title">Title only</button>
+            <button class="toggle-btn" data-value="description">Description only</button>
+          </div>
         </div>
+
+        <div class="filter-group">
+          <label>Tender status</label>
+          <div class="toggle-group" id="status-toggle">
+            <button class="toggle-btn active" data-value="open">Open only</button>
+            <button class="toggle-btn" data-value="all">Include closed</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Search scope</label>
+          <div class="toggle-group" id="scope-toggle">
+            <button class="toggle-btn active" data-value="all">All tenders</button>
+            <button class="toggle-btn" data-value="pages">Specific pages</button>
+          </div>
+        </div>
+
+        <div class="filter-group" id="pages-group" style="display:none;">
+          <label for="pages-input">Number of pages</label>
+          <div class="pages-inline">
+            <input type="number" id="pages-input" value="20" min="1" max="500" />
+            <span>× 100 per page</span>
+          </div>
+        </div>
+
       </div>
 
-      <div class="filter-group">
-        <label>Tender status</label>
-        <div class="toggle-group" id="status-toggle">
-          <button class="toggle-btn active" data-value="open">Open only</button>
-          <button class="toggle-btn" data-value="all">Include closed</button>
+      <!-- Source key -->
+      <div class="source-key">
+        <label>Key</label>
+        <div class="source-key-item">
+          <span class="source-badge source-ft">FT</span>
+          <span class="source-key-name">Find a Tender</span>
         </div>
-      </div>
-
-      <div class="filter-group">
-        <label>Search scope</label>
-        <div class="toggle-group" id="scope-toggle">
-          <button class="toggle-btn active" data-value="all">All tenders</button>
-          <button class="toggle-btn" data-value="pages">Specific pages</button>
-        </div>
-      </div>
-
-      <div class="filter-group" id="pages-group" style="display:none;">
-        <label for="pages-input">Number of pages</label>
-        <div class="pages-inline">
-          <input type="number" id="pages-input" value="20" min="1" max="500" />
-          <span>× 100 per page</span>
+        <div class="source-key-item">
+          <span class="source-badge source-cf">CF</span>
+          <span class="source-key-name">Contracts Finder</span>
         </div>
       </div>
 
@@ -150,6 +166,7 @@
               <th>Value</th>
               <th>Closes</th>
               <th>Matched on</th>
+              <th>Source</th>
             </tr>
           </thead>
           <tbody id="results-body"></tbody>

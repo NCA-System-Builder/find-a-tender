@@ -10,7 +10,6 @@ let scopeMode  = 'all';
 let allResults = [];
 let cancelled  = false;
 
-// Fallback used when keywords.txt cannot be fetched (e.g. opening via file://)
 const DEFAULT_KEYWORDS = [
   'Biodiversity Net Gain', 'BNG',
   'carbon credits', 'carbon neutral',
@@ -96,24 +95,15 @@ setupToggle('scope-toggle',     val => {
 });
 
 // ── Tab switching ──
-// Tracks which tab is currently active so map can be initialised correctly
 let activeTab = 'table';
 
 function switchTab(tab) {
   activeTab = tab;
-
-  // Update tab button states
   document.getElementById('tab-table').classList.toggle('active', tab === 'table');
   document.getElementById('tab-map').classList.toggle('active', tab === 'map');
-
-  // Show/hide content panels
   document.getElementById('tab-content-table').style.display = tab === 'table' ? 'block' : 'none';
   document.getElementById('tab-content-map').style.display   = tab === 'map'   ? 'block' : 'none';
-
-  // When switching to map, hand off to map.js
-  if (tab === 'map') {
-    onMapTabOpen(allResults);
-  }
+  if (tab === 'map') onMapTabOpen(allResults);
 }
 
 // ── Search button state ──
@@ -124,7 +114,6 @@ function setSearching(on) {
 }
 
 // ── Called from search.js when results are ready ──
-// Renders the table, kicks off background geocoding, shows results section.
 function onSearchComplete(results, totalFetched, pageCount) {
   allResults = results;
 
@@ -137,23 +126,17 @@ function onSearchComplete(results, totalFetched, pageCount) {
     return;
   }
 
-  // Update meta
+  const ftCount = results.filter(r => r.source === 'FT').length;
+  const cfCount = results.filter(r => r.source === 'CF').length;
+
   document.getElementById('results-meta').textContent =
-    `${results.length} result${results.length !== 1 ? 's' : ''} from ${totalFetched.toLocaleString()} tenders searched`;
+    `${results.length} result${results.length !== 1 ? 's' : ''} from ${totalFetched.toLocaleString()} tenders searched` +
+    ` (${ftCount} FT, ${cfCount} CF)`;
 
-  // Reset map state for new results
   resetMap();
-
-  // Switch back to table tab on new search
   switchTab('table');
-
-  // Render table
   sortAndRender();
-
-  // Show results section
   document.getElementById('results-section').style.display = 'block';
-
-  // Start geocoding in the background — doesn't block the table rendering
   geocodeAndRenderMap(results);
 }
 
@@ -197,6 +180,10 @@ function renderTable(results) {
 
     const chips = r.matched.map(k => `<span class="keyword-chip">${escapeHtml(k)}</span>`).join('');
 
+    // Source badge
+    const badgeClass = r.source === 'FT' ? 'source-ft' : 'source-cf';
+    const sourceBadge = `<span class="source-badge ${badgeClass}" title="${r.source === 'FT' ? 'Find a Tender' : 'Contracts Finder'}">${r.source}</span>`;
+
     tr.innerHTML = `
       <td class="td-title"><a href="${escapeHtml(r.link)}" target="_blank">${escapeHtml(r.title)}</a></td>
       <td class="td-buyer">${escapeHtml(r.buyer)}</td>
@@ -204,6 +191,7 @@ function renderTable(results) {
       <td class="td-value">${valueDisplay}</td>
       <td class="td-date ${dateClass}">${dateDisplay}</td>
       <td><div class="keyword-chips">${chips}</div></td>
+      <td class="td-source">${sourceBadge}</td>
     `;
     tbody.appendChild(tr);
   }
@@ -212,11 +200,13 @@ function renderTable(results) {
 // ── CSV download ──
 function downloadCSV() {
   if (!allResults.length) return;
-  const headers = ['Title', 'Buyer', 'Postcode', 'Value (GBP)', 'Closes', 'Matched Keywords', 'OCID', 'Link'];
+  const headers = ['Title', 'Buyer', 'Postcode', 'Value (GBP)', 'Closes', 'Matched Keywords', 'Source', 'OCID', 'Link'];
   const rows    = allResults.map(r => [
     r.title, r.buyer, r.postcode,
     r.value ?? '', r.closes || '',
-    r.matched.join('; '), r.ocid, r.link
+    r.matched.join('; '),
+    r.source === 'FT' ? 'Find a Tender' : 'Contracts Finder',
+    r.ocid, r.link
   ]);
   const csv  = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

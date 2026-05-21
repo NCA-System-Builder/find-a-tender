@@ -1,8 +1,10 @@
 // ── search.js ──
 // Handles API fetching, pagination, and the main search loop.
+// Runs Find a Tender and Contracts Finder in parallel.
 // Calls onSearchComplete() in ui.js when results are ready.
 
-const BASE_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/tender-proxy';
+const FT_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/tender-proxy';
+const CF_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/contracts-finder-proxy';
 
 async function fetchPage(url) {
   const response = await fetch(url, {
@@ -11,21 +13,27 @@ async function fetchPage(url) {
   });
   if (!response.ok) {
     if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
-    if (response.status === 503) throw new Error('The Find a Tender service is temporarily unavailable. Please try again shortly.');
+    if (response.status === 503) throw new Error('The service is temporarily unavailable. Please try again shortly.');
     throw new Error(`API error: ${response.status}`);
   }
   return response.json();
 }
 
-function getNextUrl(data) {
+function getNextUrl(data, proxyBase) {
   const links = data.links;
   if (!links) return null;
-  if (typeof links === 'object' && !Array.isArray(links)) return links.next || null;
-  if (Array.isArray(links)) {
+  // Links can be a dict {next: '...'} or array [{rel:'next', href:'...'}]
+  let nextHref = null;
+  if (typeof links === 'object' && !Array.isArray(links)) {
+    nextHref = links.next || null;
+  } else if (Array.isArray(links)) {
     const next = links.find(l => l.rel === 'next');
-    return next ? next.href : null;
+    nextHref = next ? next.href : null;
   }
-  return null;
+  if (!nextHref) return null;
+  // Route through our proxy — strip the original domain, keep query params
+  const nextUrlObj = new URL(nextHref);
+  return `${proxyBase}?${nextUrlObj.searchParams.toString()}`;
 }
 
 function extractPostcode(release) {
@@ -37,9 +45,23 @@ function extractPostcode(release) {
   return null;
 }
 
-function buildResult(release, matchedKeywords) {
+function buildResult(release, matchedKeywords, source) {
   const tender = release.tender || {};
   const buyer  = release.buyer  || {};
+
+  // Contracts Finder notice link uses GUID portion of the id field
+  // e.g. "91b86688-2d51-46ff-a8eb-e42398b7b8d4-898534" -> take everything before the last hyphen-number
+  let link;
+  if (source === 'CF') {
+    const id = release.id || '';
+    // The GUID is everything up to the last -NNNNNN suffix
+    const guidMatch = id.match(/^(.+)-\d+$/);
+    const guid = guidMatch ? guidMatch[1] : id;
+    link = `https://www.contractsfinder.service.gov.uk/Notice/${guid}`;
+  } else {
+    link = `https://www.find-tender.service.gov.uk/Notice/${release.id || ''}`;
+  }
+
   return {
     ocid:     release.ocid || '',
     title:    tender.title || 'No title',
@@ -49,8 +71,45 @@ function buildResult(release, matchedKeywords) {
     currency: tender.value?.currency || 'GBP',
     closes:   tender.tenderPeriod?.endDate || null,
     matched:  matchedKeywords,
-    link:     `https://www.find-tender.service.gov.uk/Notice/${release.id || ''}`
+    source,   // 'FT' or 'CF'
+    link
   };
+}
+
+// ── Fetch all pages from one source ──
+async function fetchAllPages(proxyBase, label, maxPages, searchAll, results, today, onProgress) {
+  let url  = `${proxyBase}?limit=100&stages=tender`;
+  let page = 1;
+  let fetched = 0;
+
+  while (page <= maxPages) {
+    if (cancelled) break;
+
+    onProgress(label, page, fetched, results.length);
+
+    const data     = await fetchPage(url);
+    const releases = data.releases || [];
+    fetched += releases.length;
+
+    for (const release of releases) {
+      const matched = filterRelease(release, keywords, searchIn);
+      if (!matched.length) continue;
+      const result = buildResult(release, matched, label);
+      if (statusMode === 'open') {
+        const closes = result.closes ? new Date(result.closes) : null;
+        if (closes && closes < today) continue;
+      }
+      results.push(result);
+    }
+
+    const nextUrl = getNextUrl(data, proxyBase);
+    if (!nextUrl) break;
+    url = nextUrl;
+    page++;
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  return fetched;
 }
 
 function cancelSearch() { cancelled = true; }
@@ -69,78 +128,55 @@ async function startSearch() {
 
   setSearching(true);
 
-  // Reset results display
-  const resultsSection = document.getElementById('results-section');
-  const emptyState     = document.getElementById('empty-state');
-  resultsSection.style.display = 'none';
-  emptyState.style.display     = 'none';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('empty-state').style.display     = 'none';
 
-  setStatus('loading', 'Connecting to Find a Tender…');
+  setStatus('loading', 'Connecting to Find a Tender and Contracts Finder…');
 
-  let url          = `${BASE_URL}?limit=100&stages=tender`;
-  let page         = 1;
-  let totalFetched = 0;
-  const results    = [];
-  const today      = new Date();
+  const results = [];
+  const today   = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Progress callback — shows combined live status
+  let ftFetched = 0;
+  let cfFetched = 0;
+
+  function onProgress(label, page, fetched, matchCount) {
+    if (label === 'FT') ftFetched = fetched;
+    if (label === 'CF') cfFetched = fetched;
+    setStatus('loading',
+      `Searching… FT page ${page} · CF page ${page} — ` +
+      `${(ftFetched + cfFetched).toLocaleString()} tenders checked, ${matchCount} match(es) found so far…`
+    );
+  }
+
   try {
-    while (page <= maxPages) {
-      if (cancelled) {
-        setStatus('success',
-          `Search cancelled — ${page - 1} page(s) checked, ${totalFetched.toLocaleString()} tenders searched, ${results.length} match(es) found.`
-        );
-        break;
-      }
+    // Run both sources in parallel
+    const [ftFetchedTotal, cfFetchedTotal] = await Promise.all([
+      fetchAllPages(FT_URL, 'FT', maxPages, searchAll, results, today, onProgress),
+      fetchAllPages(CF_URL, 'CF', maxPages, searchAll, results, today, onProgress)
+    ]);
 
-      setStatus('loading',
-        `Page ${page}${searchAll ? '' : ` of ${maxPages}`} — ${totalFetched.toLocaleString()} tenders checked, ${results.length} match(es) found so far…`
-      );
+    const totalFetched = ftFetchedTotal + cfFetchedTotal;
 
-      const data     = await fetchPage(url);
-      const releases = data.releases || [];
-      totalFetched  += releases.length;
-
-      for (const release of releases) {
-        const matched = filterRelease(release, keywords, searchIn);
-        if (!matched.length) continue;
-        const result = buildResult(release, matched);
-        if (statusMode === 'open') {
-          const closes = result.closes ? new Date(result.closes) : null;
-          if (closes && closes < today) continue;
-        }
-        results.push(result);
-      }
-
-      const nextUrl = getNextUrl(data);
-      if (!nextUrl) {
-        if (!cancelled) {
-          setStatus('success',
-            `Complete — all ${totalFetched.toLocaleString()} tenders searched across ${page} page(s). Found ${results.length} match(es).`
-          );
-        }
-        break;
-      }
-
-      const nextUrlObj = new URL(nextUrl);
-      url = `${BASE_URL}?${nextUrlObj.searchParams.toString()}`;
-      page++;
-      await new Promise(r => setTimeout(r, 500));
-    }
-
-    if (!cancelled && page > maxPages) {
+    if (!cancelled) {
       setStatus('success',
-        `Searched ${totalFetched.toLocaleString()} tenders across ${maxPages} page(s). Found ${results.length} match(es).`
+        `Complete — ${totalFetched.toLocaleString()} tenders searched ` +
+        `(${ftFetchedTotal.toLocaleString()} FT, ${cfFetchedTotal.toLocaleString()} CF). ` +
+        `Found ${results.length} match(es).`
+      );
+    } else {
+      setStatus('success',
+        `Search cancelled — ${totalFetched.toLocaleString()} tenders checked, ${results.length} match(es) found.`
       );
     }
 
-    // Hand off to ui.js — it handles table rendering, map kickoff, and display
-    onSearchComplete(results, totalFetched, page);
+    onSearchComplete(results, totalFetched, 0);
 
   } catch (err) {
     setStatus('error', err.message || 'An unexpected error occurred. Please try again.');
-    emptyState.style.display = 'block';
-    emptyState.innerHTML = `
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').innerHTML = `
       <h3>Something went wrong</h3>
       <p>${escapeHtml(err.message)}</p>
     `;
