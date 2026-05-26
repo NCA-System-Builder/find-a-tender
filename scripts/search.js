@@ -5,10 +5,14 @@
 
 const FT_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/tender-proxy';
 const CF_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/contracts-finder-proxy';
+const SUPABASE_ANON_KEY = ' sb_publishable_4BQJDblpauQWZrcIYVmU0w_EZ8kLlSQ';
 
 async function fetchPage(url) {
   const response = await fetch(url, {
-    headers: { 'Accept': 'application/json' },
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    },
     signal: AbortSignal.timeout(60000)
   });
   if (!response.ok) {
