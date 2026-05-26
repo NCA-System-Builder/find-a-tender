@@ -5,7 +5,7 @@
 
 const FT_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/tender-proxy';
 const CF_URL = 'https://hzagpyjeauqkqffvptti.supabase.co/functions/v1/contracts-finder-proxy';
-const SUPABASE_ANON_KEY = ' sb_publishable_4BQJDblpauQWZrcIYVmU0w_EZ8kLlSQ';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YWdweWplYXVxa3FmZnZwdHRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNjYzMzYsImV4cCI6MjA5NDg0MjMzNn0.DpChYgxsRe6xWjogoB7ur2gZ4HphDV70fCGD2ocVoZ4';
 
 async function fetchPage(url) {
   const response = await fetch(url, {

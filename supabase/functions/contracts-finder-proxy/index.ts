@@ -19,6 +19,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
       headers: { "Accept": "application/json" },
     });
 
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return new Response(JSON.stringify({ error: "The Contracts Finder service is temporarily unavailable. Please try again shortly." }), {
+        status: 503,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    }
+
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {
